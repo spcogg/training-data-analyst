@@ -1,3 +1,6 @@
+Spcogg's personal version of the files. Used for moving data/saving progress between training datalab instances.
+Github is pretty cool!
+
 # training-data-analyst 
 
 Labs and demos for Google Cloud Platform courses (http://cloud.google.com/training).
