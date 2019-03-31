@@ -2,7 +2,7 @@ import argparse
 import json
 import os
 
-from . import model
+from . import model  # this model comes from TF??
 
 import tensorflow as tf
 from tensorflow.contrib.learn.python.learn import learn_runner
@@ -61,9 +61,9 @@ if __name__ == '__main__':
         default = None
     )
     parser.add_argument(
-        '--pattern(of)',
+        '--pattern',
         help = 'Specify a pattern that has to be in input files. For example 00001-of will process only one shard',
-        default = of        
+        default = 'of'        
     )
     
     ## parse all arguments
