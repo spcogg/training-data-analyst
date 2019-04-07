@@ -36,7 +36,8 @@ def dnn_model(img, mode, hparams):
   input_layer = tf.reshape(img, [-1, HEIGHT*WIDTH])
   hl1 = tf.layers.dense(input_layer, 300, activation=tf.nn.relu)
   hl2 = tf.layers.dense(hl1, 100, activation=tf.nn.relu)
-  hl3 = tf.layers.dense(hl2, 200, activation=tf.nn.softmax_cross_entropy_with_logits_v2)
+  hl3 = tf.layers.dense(hl2, 200, activation=tf.nn.relu) # has to be relu
+  # can't call tf.nn.softmax_cross_entropy_with_logits_v2 without arguments/classes
   ylogits = tf.layers.dense(hl3, NCLASSES, activation=None)
   return ylogits, NCLASSES
   
@@ -46,7 +47,7 @@ def dnn_dropout_model(img, mode, hparams):
   input_layer = tf.reshape(img, [-1, HEIGHT*WIDTH])
   hl1 = tf.layers.dense(input_layer, 300, activation=tf.nn.relu)
   hl2 = tf.layers.dense(hl1, 100, activation=tf.nn.relu)
-  hl3 = tf.layers.dense(hl2, 200, activation=tf.nn.softmax_cross_entropy_with_logits_v2)
+  hl3 = tf.layers.dense(hl2, 200, activation=tf.nn.relu) 
   dl1 = tf.layers.dropout(hl3, rate=dprob, training=(mode==tf.estimator.ModeKeys.TRAIN)) 
     #only dropout during training
   ylogits = tf.layers.dense(dl1, NCLASSES, activation=None)
