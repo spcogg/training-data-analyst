@@ -41,8 +41,17 @@ def dnn_model(img, mode, hparams):
   return ylogits, NCLASSES
   
 def dnn_dropout_model(img, mode, hparams):
+  dprob = hparams.get('dprob', 0.1)  # get from passed in hparams dictionary with default
   #TODO: Implement DNN model and apply dropout to the last hidden layer
-  pass
+  input_layer = tf.reshape(img, [-1, HEIGHT*WIDTH])
+  hl1 = tf.layers.dense(input_layer, 300, activation=tf.nn.relu)
+  hl2 = tf.layers.dense(hl1, 100, activation=tf.nn.relu)
+  hl3 = tf.layers.dense(hl2, 200, activation=tf.nn.softmax_cross_entropy_with_logits_v2)
+  dl1 = tf.layers.dropout(hl3, rate=dprob, training=(mode==tf.estimator.ModeKeys.TRAIN)) 
+    #only dropout during training
+  ylogits = tf.layers.dense(dl1, NCLASSES, activation=None)
+  return ylogits, NCLASSES
+
 
 def cnn_model(img, mode, hparams):
   ksize1 = hparams.get('ksize1', 5)
