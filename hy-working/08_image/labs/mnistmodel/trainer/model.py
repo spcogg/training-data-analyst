@@ -68,9 +68,10 @@ def cnn_model(img, mode, hparams):
   p1 = tf.layers.max_pooling2d(c1,pool_size=2, strides=2) # ?x14x14x10
   #TODO: apply a second convolution to the output of p1
   c2 = tf.layers.conv2d(p1, filters=nfil2, strides=1, padding='same',
-                          activation=tf.nn.relu) 
+                          kernel_size=ksize2, activation=tf.nn.relu) 
+                        # size ?x14x14x20, 20 filters gives x20 in the end
   #TODO: apply a pooling layer with pool_size=2 and strides=2
-  p2 = tf.layers.max_pooling2d(c2, pool_size=2, strides=2)
+  p2 = tf.layers.max_pooling2d(c2, pool_size=2, strides=2) #?x7x7x20
   
   outlen = p2.shape[1]*p2.shape[2]*p2.shape[3] #980 ? flat size of p2?
   p2flat = tf.reshape(p2, [-1, outlen]) # flattened
