@@ -49,26 +49,30 @@ def dnn_dropout_model(img, mode, hparams):
   hl2 = tf.layers.dense(hl1, 100, activation=tf.nn.relu)
   hl3 = tf.layers.dense(hl2, 200, activation=tf.nn.relu) 
   dl1 = tf.layers.dropout(hl3, rate=dprob, training=(mode==tf.estimator.ModeKeys.TRAIN)) 
-    #only dropout during training
+  #only dropout during training
   ylogits = tf.layers.dense(dl1, NCLASSES, activation=None)
   return ylogits, NCLASSES
 
 
 def cnn_model(img, mode, hparams):
-  ksize1 = hparams.get('ksize1', 5)
+  ksize1 = hparams.get('ksize1', 5)  # kernel size1
   ksize2 = hparams.get('ksize2', 5)
-  nfil1 = hparams.get('nfil1', 10)
-  nfil2 = hparams.get('nfil2', 20)
+  nfil1 = hparams.get('nfil1', 10) # filters per layer
+  nfil2 = hparams.get('nfil2', 20) # these are the params that get trained
+  # Total params to train = sum (kernel sizes x n filters) over all layers
   dprob = hparams.get('dprob', 0.25)
   
   c1 = tf.layers.conv2d(img, filters=nfil1,
                           kernel_size=ksize1, strides=1, # ?x28x28x10
                           padding='same', activation=tf.nn.relu)
   p1 = tf.layers.max_pooling2d(c1,pool_size=2, strides=2) # ?x14x14x10
-  c2 = None #TODO: apply a second convolution to the output of p1
-  p2 = None #TODO: apply a pooling layer with pool_size=2 and strides=2
+  #TODO: apply a second convolution to the output of p1
+  c2 = tf.layers.conv2d(p1, filters=nfil2, strides=1, padding='same',
+                          activation=tf.nn.relu) 
+  #TODO: apply a pooling layer with pool_size=2 and strides=2
+  p2 = tf.layers.max_pooling2d(c2, pool_size=2, strides=2)
   
-  outlen = p2.shape[1]*p2.shape[2]*p2.shape[3] #980
+  outlen = p2.shape[1]*p2.shape[2]*p2.shape[3] #980 ? flat size of p2?
   p2flat = tf.reshape(p2, [-1, outlen]) # flattened
 
   h3 = tf.layers.dense(p2flat, 300, activation=tf.nn.relu) 
@@ -79,6 +83,12 @@ def cnn_model(img, mode, hparams):
   return ylogits, NCLASSES
 
 def serving_input_fn():
+    '''
+    this is different from the train/eval input FNs because it needs to deal with
+    Raw data sent over API/internet etc. rather than from the training dataset srouce
+    Where the data is already nicely formatted
+    Hence the extra reformatting data stuff, and the placeholders
+    '''
     #input will be rank 3
     feature_placeholders = {
         'image': tf.placeholder(tf.float32, [None, HEIGHT, WIDTH])}
@@ -134,6 +144,7 @@ def train_and_evaluate(output_dir, hparams):
   EVAL_INTERVAL = 60
 
   mnist = input_data.read_data_sets('mnist/data', one_hot=True, reshape=False)
+  # this is where the data comes in...wayy too easy, using this function to get all the data in nicely
 
   train_input_fn = tf.estimator.inputs.numpy_input_fn(
     x={'image':mnist.train.images},
