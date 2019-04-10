@@ -112,7 +112,8 @@ def read_and_preprocess(image_bytes, label=None, augment=False):
        #TODO: add image augmentation functions
        image = tfi.resize_bilinear(image, [HEIGHT+10, WIDTH+10], align_corners=False)
        image = tf.squeeze(image) #remove batch dimension
-       image = tfi.random_crop(image, [HEIGHT, WIDTH, NUM_CHANNELS])
+       image = tf.random_crop(image, [HEIGHT, WIDTH, NUM_CHANNELS])  # uses an old version of tf
+       # where apparently the random_crop method was part of the tf class, not the TFI class
        image = tfi.random_flip_left_right(image)
        image = tfi.random_brightness(image, max_delta=63.0/255.0)
        image = tfi.random_contrast(image, lower=0.2, upper=1.8)
