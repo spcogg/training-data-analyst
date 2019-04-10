@@ -19,6 +19,7 @@ from __future__ import division
 from __future__ import print_function
 
 import tensorflow as tf
+from tensorflow import image as tfi
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -100,14 +101,23 @@ def read_and_preprocess(image_bytes, label=None, augment=False):
     # decode the image
     # end up with pixel values that are in the -1, 1 range
     
-    image = #TODO: decode contents into JPEG
-    image = #TODO: convert JPEG tensor to floats between 0 and 1
+    #TODO: decode contents into JPEG
+    image = tfi.decode_jpeg(image_bytes, channels=NUM_CHANNELS)
+    #TODO: convert JPEG tensor to floats between 0 and 1
+    image = tfi.convert_image_dtype(image, dtype=tf.float32)
+    
     image = tf.expand_dims(image, 0) # resize_bilinear needs batches
     
     if augment:
        #TODO: add image augmentation functions
+       image = tfi.resize_bilinear(image, [HEIGHT+10, WIDTH+10], align_corners=False)
+       image = tf.squeeze(image) #remove batch dimension
+       image = tfi.random_crop(image, [HEIGHT, WIDTH, NUM_CHANNELS])
+       image = tfi.random_flip_left_right(image)
+       image = tfi.random_brightness(image, max_delta=63.0/255.0)
+       image = tfi.random_contrast(image, lower=0.2, upper=1.8)
     else:
-       image = tf.image.resize_bilinear(image, [HEIGHT, WIDTH], align_corners=False)
+       image = tfi.resize_bilinear(image, [HEIGHT, WIDTH], align_corners=False)
        image = tf.squeeze(image) #remove batch dimension
         
     #pixel values are in range [0,1], convert to [-1,1]
@@ -136,9 +146,11 @@ def make_input_fn(csv_of_filenames, batch_size, mode, augment=False):
         dataset = tf.data.TextLineDataset(csv_of_filenames).map(decode_csv)     
         
         if augment: 
-            dataset = #TODO: map read_and_preprocess_with_augment
+            #TODO: map read_and_preprocess_with_augment
+            dataset = dataset.map(read_and_preprocess_with_augment)
         else:
-            dataset = #TODO: map read_and_preprocess
+            #TODO: map read_and_preprocess
+            dataset = dataset.map(read_and_preprocess)
 
         if mode == tf.estimator.ModeKeys.TRAIN:
             num_epochs = None # indefinitely
